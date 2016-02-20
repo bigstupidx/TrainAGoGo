@@ -1,88 +1,207 @@
 ﻿using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
+
 
 public class AIMovementScript : MonoBehaviour {
 
-	public Vector3 centerOfMass;
-	public List<Transform> path;
-	public Transform pathGroup;
-	public float maxSteer = 15.0f;
-	public WheelCollider wheelFL;
-	public WheelCollider wheelFR;
-	public WheelCollider wheelRL;
-	public WheelCollider wheelRR;
-	public int currentPathObj = 0;
-	public float distFromPath = 20f;
-	public float maxTorque = 50f;
-	public float currentSpeed;
-	public float topSpeed = 150f;
-	public float decellarationSpeed = 10f;  
+	enum VehicleState {
+		isOnGround = 1,
+		isOnBridge,
+		isOutBridge,
+	};
 
-	void Awake() {
-		GetPath ();
+	public float m_Speed = 12f;            
+	public float m_TurnSpeed = 1;       
+	public AudioSource m_MovementAudio;    
+	public AudioClip m_EngineIdling;       
+	public AudioClip m_EngineDriving;      
+	public float m_PitchRange = 0.2f;
+
+	private string m_MovementAxisName;     
+	private string m_TurnAxisName;         
+	private Rigidbody m_Rigidbody;         
+	private float m_MovementInputValue;    
+	private float m_TurnInputValue;        
+	private float m_OriginalPitch;      
+
+	public int vehicleState;
+	private bool isTurnLeft;
+	private float k_DirectionCoeffience;
+	private float k_TurnCoeffience;
+	private float originalTurnValue;
+	private float previousTurnValue;	//turn value before each vehicle state
+	private float deaccelerateMovementInputValue; // use to deaccelrate velocity of vehicle before turning
+	private float deaccelerateSpeedValue;
+
+	private bool isHitCenterBridge;	//check if hit center of bridge
+
+	private Collision collisonObject;
+
+	//values that will be set in the Inspector
+	public Transform Target;
+	public float RotationSpeed = 0.25f;
+
+	//values for internal use
+	private Quaternion _lookRotation;
+	private Vector3 _direction;
+
+	private void Awake()
+	{
+		m_Rigidbody = GetComponent<Rigidbody>();
+
+		vehicleState = (int)VehicleState.isOnGround;
 	}
 
-	void Start () {
-		centerOfMass = GetComponent<Rigidbody> ().centerOfMass;
-//		GetPath ();
-	}
+	private void OnEnable ()
+	{
+		m_Rigidbody.isKinematic = false;
+		m_MovementInputValue = 0.1f;
+		m_TurnInputValue = 0f;
+		deaccelerateMovementInputValue = 0.15f;
+		deaccelerateSpeedValue = 10;
 
-	void GetPath () {
-//		Transform[] potentialWaypoints = waypointContainer.GetComponentsInChildren<Transform>();
-//		waypoints = new List<Transform>();
-//
-//		foreach ( Transform potentialWaypoint in potentialWaypoints ) {
-//			if ( potentialWaypoint != waypointContainer.transform ) {
-//				waypoints.Add(potentialWaypoint);
-//			}
-//		}
+		originalTurnValue = transform.rotation.eulerAngles.y;
+		previousTurnValue = originalTurnValue;
 
-		Transform[] path_objs = pathGroup.GetComponentsInChildren <Transform>();
-		path = new List<Transform>();
 
-		Debug.Log ("Path = " + path);
 
-		foreach (Transform path_obj in path_objs) {
-			if (path_obj != pathGroup.transform)
-				path.Add(path_obj);
+		if (originalTurnValue != 0f) {
+			k_DirectionCoeffience = 1f;
+			k_TurnCoeffience = 0.20f;
+		} 
+		else {
+			k_DirectionCoeffience = -1f;
+			k_TurnCoeffience = 0.20f;
 		}
-	}  
 
-	void Update () {  
-		GetSteer();  
-		Move();  
-	}  
+		isTurnLeft = false;
+		isHitCenterBridge = false;
+	}
 
-	void GetSteer() {
 
-		Vector3 steerVector = transform.InverseTransformPoint(new Vector3(path[currentPathObj].position.x,transform.position.y,path[currentPathObj].position.z));  
-		float newSteer = maxSteer * (steerVector.x / steerVector.magnitude);
+	private void OnDisable ()
+	{
+		m_Rigidbody.isKinematic = true;
+	}
 
-		wheelFL.steerAngle = newSteer;  
-		wheelFR.steerAngle = newSteer;  
 
-		if (steerVector.magnitude <= distFromPath){  
-			currentPathObj++;  
-			if (currentPathObj >= path.Count)  
-				currentPathObj = 0;  
-		}  
-	}  
+	private void Start()
+	{
+		//		m_MovementAxisName = "VerticalUI";
+		//		m_TurnAxisName = "HorizontalUI";
 
-	void Move (){  
-		currentSpeed = 2*(22/7) * wheelRL.radius * wheelRL.rpm * 60 / 1000;  
-		currentSpeed = Mathf.Round (currentSpeed);  
-		if (currentSpeed <= topSpeed){  
-			wheelRL.motorTorque = maxTorque;  
-			wheelRR.motorTorque = maxTorque;  
-			wheelRL.brakeTorque = 0;  
-			wheelRR.brakeTorque = 0;  
-		}  
-		else {  
-			wheelRL.motorTorque = 0;  
-			wheelRR.motorTorque = 0;  
-			wheelRL.brakeTorque = decellarationSpeed;  
-			wheelRR.brakeTorque = decellarationSpeed;  
-		}  
-	} 
+		//		m_OriginalPitch = m_MovementAudio.pitch;
+
+
+	}
+
+	private void Update()
+	{
+		// Store the player's input and make sure the audio for the engine is playing.
+		//		m_MovementInputValue = Input.GetAxis(m_MovementAxisName);
+		//		m_TurnInputValue = Input.GetAxis (m_TurnAxisName);
+
+		//		Debug.Log ("turnInput = " + m_TurnInputValue);
+
+		//		m_MovementInputValue += 0.001f;
+
+		//		EngineAudio ();
+
+	}
+
+
+	private void EngineAudio()
+	{
+		// Play the correct audio clip based on whether or not the tank is moving and what audio is currently playing.
+		if (Mathf.Abs (m_TurnInputValue) < 0.1f && Mathf.Abs (m_MovementInputValue) < 0.1f) {
+			if (m_MovementAudio.clip == m_EngineDriving) {
+				m_MovementAudio.clip = m_EngineIdling;
+				m_MovementAudio.pitch = Random.Range (m_OriginalPitch - m_PitchRange, m_OriginalPitch + m_PitchRange);					
+				m_MovementAudio.Play ();
+			}
+		} else {
+			if (m_MovementAudio.clip == m_EngineIdling) {
+				m_MovementAudio.clip = m_EngineDriving;
+				m_MovementAudio.pitch = Random.Range (m_OriginalPitch - m_PitchRange, m_OriginalPitch + m_PitchRange);					
+				m_MovementAudio.Play ();
+			}
+		}
+	}
+
+
+	private void FixedUpdate()
+	{
+		// Move and turn the tank.
+		Move ();
+		Turn ();
+
+
+
+
+		if (vehicleState == (int)VehicleState.isOnBridge) {
+			//find the vector pointing from our position to the target
+			Target = collisonObject.transform.parent.transform.Find("CenterPoint");
+
+
+
+			_direction = (Target.position - transform.position).normalized;
+
+			Debug.Log (_direction);
+
+
+
+			//create the rotation we need to be in to look at the target
+			_lookRotation = Quaternion.LookRotation(_direction);
+
+
+			//rotate us over time according to speed until we are in the required rotation
+			transform.rotation = Quaternion.Slerp(transform.rotation, _lookRotation, Time.deltaTime * RotationSpeed);
+//			m_Rigidbody.MoveRotation(_lookRotation * m_Rigidbody.rotation);
+
+		} 
+		else if (vehicleState == (int)VehicleState.isOutBridge) { 
+
+
+		}
+	}
+
+
+	private void Move()
+	{
+		// Adjust the position of the tank based on the player's input.
+		Vector3 movement = transform.forward * m_MovementInputValue * m_Speed * Time.deltaTime;
+
+		m_Rigidbody.MovePosition (m_Rigidbody.position - movement);
+	}
+
+	private void Turn()
+	{
+		// Adjust the rotation of the tank based on the player's input.
+		float turn = m_TurnInputValue * m_TurnSpeed * Time.deltaTime;
+
+		Quaternion turnRotation = Quaternion.Euler (0f,turn,0f);
+
+		m_Rigidbody.MoveRotation (m_Rigidbody.rotation * turnRotation);
+	}
+
+	void OnCollisionEnter(Collision col) {
+		if (col.gameObject.tag == "Bridge") {
+			collisonObject = col;
+			Debug.Log ("Bridge");
+			if (vehicleState == (int)VehicleState.isOnGround) {
+
+				vehicleState = (int)VehicleState.isOnBridge;
+
+
+			} 
+		} 
+		else if (col.gameObject.tag == "Road") { 
+			//vehicle must hit the center of bridge before check collide with other road.
+
+			if (vehicleState == (int)VehicleState.isOnBridge) {
+				
+
+			}
+		} 
+	}
 }

@@ -6,7 +6,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{803E6794-3515-D697-EAA9-610703573B4F}</ProjectGuid>
+    <ProjectGuid>{B9D0C9BF-4311-B2FB-9813-70AAA3C0E36A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Assembly-CSharp</AssemblyName>
@@ -49,10 +49,13 @@
      <Compile Include="Assets\Scripts\AIMovementScript.cs" />
      <Compile Include="Assets\Scripts\DayLightController.cs" />
      <Compile Include="Assets\Scripts\GameManager.cs" />
+     <Compile Include="Assets\Scripts\TouchHandle.cs" />
      <Compile Include="Assets\Scripts\VehicleManager.cs" />
      <Compile Include="Assets\Scripts\VehicleMovement.cs" />
+     <Compile Include="Assets\Scripts\VirtualJoystick.cs" />
      <None Include="Assets\Standard Assets\Environment\Water\Water4\Shaders\FXWater4Simple.shader" />
      <None Include="Assets\Standard Assets\Environment\Water (Basic)\Shaders\FXWaterBasic.shader" />
+     <None Include="Assets\Standard Assets\Fonts\OpenSans\License!.txt" />
      <None Include="Assets\Standard Assets\CrossPlatformInput\CrossPlatformInputGuidelines.txt" />
      <None Include="Assets\Standard Assets\Environment\Water\Water\Shaders\FXWaterPro.shader" />
      <None Include="Assets\Standard Assets\Cameras\CameraGuidelines.txt" />
@@ -67,7 +70,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Assembly-CSharp-firstpass.csproj">
-      <Project>{7FF684DA-8CDC-70A1-3AD6-3CC8CB1CA964}</Project>      <Name>Assembly-CSharp-firstpass</Name>    </ProjectReference>
+      <Project>{FE05A131-D636-A786-85C3-D701079E538B}</Project>      <Name>Assembly-CSharp-firstpass</Name>    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

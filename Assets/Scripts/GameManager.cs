@@ -4,8 +4,7 @@ using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour {
 
-	public GameObject[] m_VehiclePrefabs;         
-                  
+	public GameObject[] m_VehiclePrefabs;
 	public List<VehicleManager> m_Vehicles;
 
 	private void Start()
@@ -38,5 +37,10 @@ public class GameManager : MonoBehaviour {
 
 			m_Vehicles.Add (vehicleManager);
 		}
+	}
+
+	// Update is called once per frame
+	void Update () {
+		
 	}
 }
