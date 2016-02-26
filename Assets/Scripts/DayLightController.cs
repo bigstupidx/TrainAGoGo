@@ -6,7 +6,6 @@ public class DayLightController : MonoBehaviour {
 	[SerializeField]
 
 	public float m_maxTime = 100f;
-	public float m_dt = 0.5f;
 	private float m_previousTime;
 	public float m_currentTime;
 	public Light m_sunLight;
@@ -14,7 +13,10 @@ public class DayLightController : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		
 		m_currentTime = m_maxTime;
+		m_sunLight = GameObject.Find ("SunLight").GetComponent<Light> ();
+
 		SwitchPalmLight (true);
 	}
 	
@@ -55,5 +57,10 @@ public class DayLightController : MonoBehaviour {
 			else
 				palmLight.intensity = 8;
 		}
+	}
+
+	public void OnReset() {
+		m_currentTime = m_maxTime;
+		SwitchPalmLight (true);
 	}
 }

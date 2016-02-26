@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.UI;
 
 
 public class VehicleMovement : MonoBehaviour {
@@ -11,7 +12,9 @@ public class VehicleMovement : MonoBehaviour {
 	};
 
 	public float m_Speed = 12f;            
-	public float m_TurnSpeed = 180;       
+	public float m_TurnSpeed = 180;
+	public float originalTurnSpeed;
+	private float decreaseTurnSpeedValue = 0.22f;
 	public AudioSource m_MovementAudio;    
 	public AudioClip m_EngineIdling;       
 	public AudioClip m_EngineDriving;      
@@ -28,15 +31,18 @@ public class VehicleMovement : MonoBehaviour {
 	private bool isTurnLeft;
 	private float k_DirectionCoeffience;
 	private float k_TurnCoeffience;
-	private float originalTurnValue;
+	private float originalRoatationValue;
 	private float previousTurnValue;	//turn value before each vehicle state
+
+	private float originalMovementInputValue;
+	private float originalSpeed;
 	private float deaccelerateMovementInputValue; // use to deaccelrate velocity of vehicle before turning
 	private float deaccelerateSpeedValue;
 
 	private bool isHitCenterBridge;	//check if hit center of bridge
 
-	private Collision collisonObject;
-	private Collision collisonRoad;
+	private Collision collisonObject = null;
+	private Collision collisonRoad = null;
 
 	private void Awake()
 	{
@@ -45,15 +51,19 @@ public class VehicleMovement : MonoBehaviour {
 		vehicleState = (int)VehicleState.isOnGround;
 
 		m_MovementInputValue = 0.1f;
+		originalMovementInputValue = m_MovementInputValue;
+		originalSpeed = m_Speed;
+
 		m_TurnInputValue = 0f;
 		deaccelerateMovementInputValue = 0.15f;
 		deaccelerateSpeedValue = 10;
 
-		originalTurnValue = transform.rotation.eulerAngles.y;
-		previousTurnValue = originalTurnValue;
+		originalRoatationValue = transform.rotation.eulerAngles.y;
+//		previousTurnValue = originalTurnValue;
 
+		originalTurnSpeed = m_TurnSpeed;
 
-		if (originalTurnValue != 0f) {
+		if (originalRoatationValue != 0f) {
 			k_DirectionCoeffience = 1f;
 			k_TurnCoeffience = 0.20f;
 		} 
@@ -66,15 +76,17 @@ public class VehicleMovement : MonoBehaviour {
 		isHitCenterBridge = false;
 	}
 
-	private void OnEnable ()
+	public void OnEnable ()
 	{
 		m_Rigidbody.isKinematic = false;
 	}
 
 
-	private void OnDisable ()
+	public void OnDisable ()
 	{
 		m_Rigidbody.isKinematic = true;
+		m_MovementInputValue = 0;
+		m_Speed = 0;
 	}
 
 
@@ -93,10 +105,6 @@ public class VehicleMovement : MonoBehaviour {
 		// Store the player's input and make sure the audio for the engine is playing.
 //		m_MovementInputValue = Input.GetAxis(m_MovementAxisName);
 //		m_TurnInputValue = Input.GetAxis (m_TurnAxisName);
-
-//		Debug.Log ("turnInput = " + m_TurnInputValue);
-
-//		m_MovementInputValue += 0.001f;
 
 //		EngineAudio ();
 
@@ -128,69 +136,77 @@ public class VehicleMovement : MonoBehaviour {
 		Move ();
 		Turn ();
 
-
-//		float deltaY = Mathf.Abs (previousTurnValue - transform.rotation.eulerAngles.y);
-
 		if (vehicleState == (int)VehicleState.isOnBridge) {
-			if (transform.rotation.eulerAngles.y % 90 == 0f && originalTurnValue != 0) {
-				m_TurnInputValue = 0f;
-				previousTurnValue = transform.rotation.eulerAngles.y;
-			} 
-			else {
-				if (transform.rotation.eulerAngles.y == originalTurnValue) {
-					m_TurnInputValue = 0f;
-					previousTurnValue = transform.rotation.eulerAngles.y;
-				}
-			}
+			Debug.Log ("transform.rotation.eulerAngles.y = "+ transform.rotation.eulerAngles.y + "rotation = " + transform.rotation.eulerAngles.y % 90);
+//			if (transform.rotation.eulerAngles.y % 90 == 0f && originalTurnValue != 0) {
+//				m_TurnInputValue = 0f;
+//			} 
+//			else {
+//				if (transform.rotation.eulerAngles.y == originalTurnValue) {
+//					m_TurnInputValue = 0f;
+//				}
+//			}
 		} 
 		else if (vehicleState == (int)VehicleState.isOutBridge) { 
-			
-			//check upon hitting road after on bridge, check current rotation to original rotation in order to let vehicle whether continuing turn or not.
 
-			if (originalTurnValue != 0f) {
-				if ((transform.rotation.eulerAngles.y <= originalTurnValue && !isTurnLeft)
-				    || (transform.rotation.eulerAngles.y > originalTurnValue && isTurnLeft)) {
+			//check upon hitting road after on bridge, check current rotation to original rotation in order to let vehicle decides either turn or not.
+
+//			m_TurnSpeed -= decreaseTurnSpeedValue;
+
+			if (originalRoatationValue != 0f) {
+				if ((transform.rotation.eulerAngles.y <= originalRoatationValue && !isTurnLeft)
+					|| (transform.rotation.eulerAngles.y > originalRoatationValue && isTurnLeft)) {
 					m_TurnInputValue = 0f;
-					previousTurnValue = originalTurnValue;
 
 					//transform it to the same x position with current road
-					transform.eulerAngles = new Vector3 (0f, originalTurnValue, 0f);
+					transform.eulerAngles = new Vector3 (0f, originalRoatationValue, 0f);
 
-		
-					MeshRenderer roadRender = collisonRoad.gameObject.GetComponent<MeshRenderer> () as MeshRenderer;
-					Vector3 center = roadRender.bounds.center;
-					transform.position = new Vector3 (center.x, transform.position.y, transform.position.z);
-
-					vehicleState = (int)VehicleState.isOnGround;
+					MoveVehicleCenter ();
 
 					//destroy passed bridge
-					Destroy (collisonObject.gameObject.transform.parent.gameObject);
+					if (collisonObject != null) {
+						Destroy (collisonObject.gameObject.transform.parent.gameObject);
+						collisonObject = null;
+					}
 				} 
 			} 
 			else {
-//				Debug.Log ("transform.rotation.eulerAngles.y =" + transform.rotation.eulerAngles.y);
-//				Debug.Log ("isTurnLeft = "+isTurnLeft);
+				//				Debug.Log ("transform.rotation.eulerAngles.y =" + transform.rotation.eulerAngles.y);
+				//				Debug.Log ("isTurnLeft = "+isTurnLeft);
 				if ((transform.rotation.eulerAngles.y > 340 && transform.rotation.eulerAngles.y < 360 && isTurnLeft)
-									|| (transform.rotation.eulerAngles.y <= originalTurnValue && !isTurnLeft)) {
+					|| (transform.rotation.eulerAngles.y <= originalRoatationValue+2 && !isTurnLeft)) {
 					m_TurnInputValue = 0f;
-					previousTurnValue = originalTurnValue;
 
 					//transform it to the same x position with current road
-					transform.eulerAngles = new Vector3 (0f, originalTurnValue, 0f);
+					transform.eulerAngles = new Vector3 (0f, originalRoatationValue, 0f);
 
-					MeshRenderer roadRender = collisonRoad.gameObject.GetComponent<MeshRenderer> () as MeshRenderer;
-					Vector3 center = roadRender.bounds.center;
-					transform.position = new Vector3 (center.x, transform.position.y, transform.position.z);
-
-					vehicleState = (int)VehicleState.isOnGround;
+					MoveVehicleCenter ();
 
 					//destroy passed bridge
-					Destroy (collisonObject.gameObject.transform.parent.gameObject);
+					if (collisonObject != null) {
+						Destroy (collisonObject.gameObject.transform.parent.gameObject);
+						collisonObject = null;
+					}
 				}
 			}
 		}
+
 	}
 
+	private void MoveVehicleCenter () {
+		vehicleState = (int)VehicleState.isOnGround;
+
+		MeshRenderer roadRender = collisonRoad.gameObject.GetComponent<MeshRenderer> () as MeshRenderer;
+		Vector3 center = roadRender.bounds.center;
+		transform.position = new Vector3 (center.x, transform.position.y, transform.position.z);
+
+		//reset m_movementSpeed
+		m_MovementInputValue = originalMovementInputValue;
+		m_Speed = originalSpeed;
+
+		//reset m_turnSpeed
+		m_TurnSpeed = originalTurnSpeed;
+	}
 
 	private void Move()
 	{
@@ -212,24 +228,24 @@ public class VehicleMovement : MonoBehaviour {
 
 	void OnCollisionEnter(Collision col) {
 		if (col.gameObject.tag == "Bridge") {
-			collisonObject = col;
+			if (collisonObject == null)
+				collisonObject = col;
+
+			Debug.Log ("vehicleState = " + vehicleState + "isBridgePoint = " + isHitCenterBridge);
 
 			if (vehicleState == (int)VehicleState.isOnGround) {
 				
-				vehicleState = (int)VehicleState.isOnBridge;
-
-				//decrease velocity of vehicle
-				m_MovementInputValue = deaccelerateMovementInputValue;
-				m_Speed = deaccelerateSpeedValue;
-
 				//check turn direction depend on vehicle position and bridge position
 				float deltaX = transform.position.x - col.transform.position.x;
 				float deltaZ = transform.position.z - col.transform.position.z;
-//				Debug.Log ("deltaZ = " + deltaX);
 
-				if (originalTurnValue != 0) {
+				if (originalRoatationValue != 0) {
 					//dont check collide if bridge is behind vehicle
 					if (deltaZ < 0) {
+						//decrease velocity of vehicle
+						m_MovementInputValue = deaccelerateMovementInputValue;
+						m_Speed = deaccelerateSpeedValue;
+
 						if (deltaX < 0) {
 							//turn right
 							m_TurnInputValue = k_TurnCoeffience * k_DirectionCoeffience;
@@ -241,11 +257,18 @@ public class VehicleMovement : MonoBehaviour {
 
 							isTurnLeft = true;
 						}
+
+						vehicleState = (int)VehicleState.isOnBridge;
+
+//						Turn ();
 					}
-				}
-				else {
+				} else {
 					//dont check collide if bridge is behind vehicle
 					if (deltaZ > 0) {
+						//decrease velocity of vehicle
+						m_MovementInputValue = deaccelerateMovementInputValue;
+						m_Speed = deaccelerateSpeedValue;
+
 						if (deltaX > 0) {
 							//turn right
 							m_TurnInputValue = -(k_TurnCoeffience * k_DirectionCoeffience);
@@ -259,11 +282,14 @@ public class VehicleMovement : MonoBehaviour {
 
 							isTurnLeft = true;
 						}
+
+						vehicleState = (int)VehicleState.isOnBridge;
+
+//						Turn ();
 					}
 				}
 			} 
-		} 
-		else if (col.gameObject.tag == "Road" && isHitCenterBridge) { 
+		} else if (col.gameObject.tag == "Road" && isHitCenterBridge) { 
 			//vehicle must hit the center of bridge before check collide with other road.
 			collisonRoad = col;
 
@@ -272,13 +298,11 @@ public class VehicleMovement : MonoBehaviour {
 				//reset center of bridge
 				isHitCenterBridge = false;
 
-				vehicleState = (int)VehicleState.isOutBridge;
-
 				//decrease velocity of vehicle
 				m_MovementInputValue = deaccelerateMovementInputValue;
 				m_Speed = deaccelerateSpeedValue;
 
-				if (originalTurnValue != 0) {
+				if (originalRoatationValue != 0) {
 					//turn right from bridge, so now turn left
 					if (!isTurnLeft) {
 						m_TurnInputValue = -(k_TurnCoeffience * k_DirectionCoeffience);
@@ -286,17 +310,49 @@ public class VehicleMovement : MonoBehaviour {
 						//turn left from bridge, so now turn right
 						m_TurnInputValue = k_TurnCoeffience * k_DirectionCoeffience;
 					}
-				} 
-				else {
+				} else {
 					if (!isTurnLeft)
 						m_TurnInputValue = (k_TurnCoeffience * k_DirectionCoeffience);
-					else 
+					else
 						m_TurnInputValue = -(k_TurnCoeffience * k_DirectionCoeffience);
 				}
+
+				vehicleState = (int)VehicleState.isOutBridge;
 			}
 		} 
 		else if (col.gameObject.tag == "BridgePoint") {
 			isHitCenterBridge = true;
+		} 
+		else if (col.gameObject.tag == "Vehicle") {
+			GameObject gameManager = GameObject.Find ("GameManager");
+			gameManager.GetComponent<GameManager> ().OnGameOver ();
+		}
+		else if (col.gameObject.tag == "DestinationPointDown") {
+			if (originalRoatationValue != 0) {
+				//ignore vehicle is going up
+			}
+			else {
+				//check vehicle going down
+				GameObject gameManager = GameObject.Find ("GameManager");
+				gameManager.GetComponent<GameManager> ().score++;
+				gameManager.GetComponent<GameManager> ().m_Vehicles.Remove(transform.gameObject);
+
+				Destroy (transform.gameObject);
+			}
+		}
+		else if (col.gameObject.tag == "DestinationPointUp") {
+			if (originalRoatationValue != 0) {
+				//check vehicle is going up
+				GameObject gameManager = GameObject.Find ("GameManager");
+				gameManager.GetComponent<GameManager> ().score++;
+				gameManager.GetComponent<GameManager> ().m_Vehicles.Remove(transform.gameObject);
+
+				Destroy (transform.gameObject);
+			}
+			else {
+				//ignore vehicle going down
+
+			}
 		}
 	}
 }

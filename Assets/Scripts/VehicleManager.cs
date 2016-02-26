@@ -3,7 +3,7 @@ using System.Collections;
 using System;
 
 [Serializable]
-public class VehicleManager : MonoBehaviour {
+public class VehicleManager  {
 
 	public Transform m_SpawnPoint;
 	public VehicleMovement m_Movement;
@@ -12,6 +12,7 @@ public class VehicleManager : MonoBehaviour {
 	public void Setup()
 	{
 		m_Movement = m_Instance.GetComponent<VehicleMovement>();
+		m_Instance.tag = "Vehicle";
 	}
 
 	public void Reset()

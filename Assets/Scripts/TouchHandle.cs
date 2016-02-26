@@ -70,7 +70,7 @@ public class TouchHandle : MonoBehaviour, IDragHandler, IPointerDownHandler, IPo
 				MeshRenderer roadRender = gameObject.GetComponent<MeshRenderer> () as MeshRenderer;
 				Vector3 roadSize = roadRender.bounds.size;
 
-				Debug.Log ("Point = " + worldSpaceHitPoint + "object = " + gameObject.transform.position + "Size = " + roadSize);
+//				Debug.Log ("Point = " + worldSpaceHitPoint + "object = " + gameObject.transform.position + "Size = " + roadSize);
 				if (worldSpaceHitPoint.x >= locateX1
 				    && worldSpaceHitPoint.x < locateX1 + roadSize.x) {
 
@@ -174,5 +174,16 @@ public class TouchHandle : MonoBehaviour, IDragHandler, IPointerDownHandler, IPo
 			Destroy (tmpBridgeObject2);
 			tmpBridgeObject2 = null;
 		}
+	}
+
+	public void RemoveAllBridges () {
+		//destroy all vehicles all screen
+		GameObject[] vehicles = GameObject.FindGameObjectsWithTag("BridgeLarge");
+
+		foreach (GameObject go in vehicles) {
+			Destroy (go);
+		}
+
+		m_Bridges.Clear ();
 	}
 }

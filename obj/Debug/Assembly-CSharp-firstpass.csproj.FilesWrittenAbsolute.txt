@@ -32,3 +32,4 @@
 /Users/Shared/Unity/TrainAGoGoClone/Temp/bin/Debug/Unity.CecilTools.dll
 /Users/Shared/Unity/TrainAGoGoClone/Temp/bin/Debug/Mono.Cecil.Pdb.dll
 /Users/Shared/Unity/TrainAGoGoClone/Temp/bin/Debug/Mono.Cecil.Mdb.dll
+/Users/Shared/Unity/TrainAGoGoClone/Temp/bin/Debug/DOTween.dll
