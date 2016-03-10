@@ -5,7 +5,7 @@ public class DayLightController : MonoBehaviour {
 
 	[SerializeField]
 
-	public float m_maxTime = 100f;
+	public float m_maxTime = 150f;
 	private float m_previousTime;
 	public float m_currentTime;
 	public Light m_sunLight;

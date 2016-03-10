@@ -43,11 +43,28 @@ public class TouchHandle : MonoBehaviour, IDragHandler, IPointerDownHandler, IPo
 			if (gameObject.tag == "Road") {
 				if (tmpBridgeObject1 != null)
 					tmpBridgeObject1.transform.position = new Vector3 (tmpBridgeObject1.transform.position.x, 
-						tmpBridgeObject1.transform.position.y, gameObject.transform.position.z);
+						tmpBridgeObject1.transform.position.y,
+						worldSpaceHitPoint.z);
+					
+				//check overlap bridge, if current bridge overlap other bridges, blur or do something different
+				if (isOverlapBridge (tmpBridgeObject1))
+					tmpBridgeObject1.SetActive (false);
+				else 
+					tmpBridgeObject1.SetActive (true);
 				
 				if (tmpBridgeObject2 != null)
 					tmpBridgeObject2.transform.position = new Vector3 (tmpBridgeObject2.transform.position.x, 
-						tmpBridgeObject2.transform.position.y, gameObject.transform.position.z);
+						tmpBridgeObject2.transform.position.y, 
+						worldSpaceHitPoint.z);
+
+				//check overlap bridge, if current bridge overlap other bridges, blur or do something different
+				if (tmpBridgeObject2 != null) {
+					if (isOverlapBridge (tmpBridgeObject2))
+						tmpBridgeObject2.SetActive (false);
+					else
+						tmpBridgeObject2.SetActive (true);
+				}
+
 			}
 		}
 	}
@@ -76,11 +93,18 @@ public class TouchHandle : MonoBehaviour, IDragHandler, IPointerDownHandler, IPo
 
 					//detect touch on road in the most left
 					tmpBridgeObject1 = Instantiate (m_TempBridgePrefab);
-					tmpBridgeObject1.transform.position = new Vector3 (gameObject.transform.position.x + roadSize.x*2, 
+					tmpBridgeObject1.transform.position = new Vector3 (gameObject.transform.position.x + roadSize.x * 2, 
 						gameObject.transform.position.y, 
-						gameObject.transform.position.z);
+						worldSpaceHitPoint.z);
+
+					//check overlap bridge, if current bridge overlap other bridges, blur or do something different
+					if (isOverlapBridge (tmpBridgeObject1))
+						tmpBridgeObject1.SetActive (false);
+					else 
+						tmpBridgeObject1.SetActive (true);
+
 				} else if (worldSpaceHitPoint.x >= locateX4
-				         && worldSpaceHitPoint.x < locateX4 + roadSize.x) {
+				           && worldSpaceHitPoint.x < locateX4 + roadSize.x) {
 
 					//detect touch on road in the most right
 					tmpBridgeObject1 = Instantiate (m_TempBridgePrefab);
@@ -91,12 +115,17 @@ public class TouchHandle : MonoBehaviour, IDragHandler, IPointerDownHandler, IPo
 
 					tmpBridgeObject1.transform.position = new Vector3 (locateX4 + 0.5f, 
 						gameObject.transform.position.y, 
-						gameObject.transform.position.z);
-				} 
-				else if (worldSpaceHitPoint.x < locateX1 || worldSpaceHitPoint.x + roadSize.x >= locateX4) {
+						worldSpaceHitPoint.z);
+
+					//check overlap bridge, if current bridge overlap other bridges, blur or do something different
+					if (isOverlapBridge (tmpBridgeObject1))
+						tmpBridgeObject1.SetActive (false);
+					else 
+						tmpBridgeObject1.SetActive (true);
+
+				} else if (worldSpaceHitPoint.x < locateX1 || worldSpaceHitPoint.x + roadSize.x >= locateX4) {
 					//out side of the most left and the most right
-				}
-				else {
+				} else {
 					//add left bridge
 					tmpBridgeObject1 = Instantiate (m_TempBridgePrefab);
 
@@ -104,15 +133,35 @@ public class TouchHandle : MonoBehaviour, IDragHandler, IPointerDownHandler, IPo
 					MeshRenderer bridgeRender = bridge.GetComponent<MeshRenderer> () as MeshRenderer;
 					Vector3 bridgeSize = bridgeRender.bounds.size;
 
-					tmpBridgeObject1.transform.position = new Vector3(gameObject.transform.position.x - 0.5f, 
-																		gameObject.transform.position.y, 
-																		gameObject.transform.position.z);
+					tmpBridgeObject1.transform.position = new Vector3 (gameObject.transform.position.x - 0.5f, 
+						gameObject.transform.position.y, 
+						worldSpaceHitPoint.z);
+
+					//check overlap bridge, if current bridge overlap other bridges, blur or do something different
+					if (isOverlapBridge (tmpBridgeObject1))
+						tmpBridgeObject1.SetActive (false);
+					else 
+						tmpBridgeObject1.SetActive (true);
 
 					//add right bridge
 					tmpBridgeObject2 = Instantiate (m_TempBridgePrefab);
-					tmpBridgeObject2.transform.position = new Vector3(gameObject.transform.position.x + roadSize.x*2, 
+					tmpBridgeObject2.transform.position = new Vector3 (gameObject.transform.position.x + roadSize.x * 2, 
 						gameObject.transform.position.y, 
-						gameObject.transform.position.z);
+						worldSpaceHitPoint.z);
+
+					//check overlap bridge, if current bridge overlap other bridges, blur or do something different
+					if (tmpBridgeObject2 != null) {
+						if (isOverlapBridge (tmpBridgeObject2))
+							tmpBridgeObject2.SetActive (false);
+						else
+							tmpBridgeObject2.SetActive (true);
+					}
+				}
+			} 
+			else if (gameObject.tag == "Bridge") {
+				Bridge bridgeScript = gameObject.transform.GetComponent<Bridge> ();
+				if (bridgeScript.numberVehicle <= 0) {
+					DestroyBridge (gameObject.transform.parent.gameObject);
 				}
 			}
 		}
@@ -120,8 +169,6 @@ public class TouchHandle : MonoBehaviour, IDragHandler, IPointerDownHandler, IPo
 
 	public virtual void OnPointerUp(PointerEventData ped)
 	{
-		
-
 //		fp =  touchPositions[0]; //get first touch position from the list of touches
 //		lp =  touchPositions[touchPositions.Count-1]; //last touch position 
 
@@ -132,24 +179,33 @@ public class TouchHandle : MonoBehaviour, IDragHandler, IPointerDownHandler, IPo
 		{//It's a drag
 			//check if the drag is vertical or horizontal 
 			if (Mathf.Abs(lp.x - fp.x) > Mathf.Abs(lp.y - fp.y))
-			{   //If the horizontal movement is greater than the vertical movement...
-				if ((lp.x>fp.x))  //If the movement was to the right)
-				{   
+			{   
+				bool isOverlap = false;
+
+				//If the horizontal movement is greater than the vertical movement...
+				if (lp.x > fp.x) {  //If the movement was to the right)
 					//Right swipe
 					GameObject bridge = Instantiate (m_BridgePrefab);
 
-					if (tmpBridgeObject1 != null) 
+					if (tmpBridgeObject1 != null)
 						bridge.transform.position = tmpBridgeObject1.transform.position;
 					if (tmpBridgeObject2 != null)
 						bridge.transform.position = tmpBridgeObject2.transform.position;
-					
-					m_Bridges.Add (bridge);
+
+					if (tmpBridgeObject1.activeSelf || tmpBridgeObject2.activeSelf)
+						m_Bridges.Add (bridge);
+					else
+						Destroy (bridge);
 				}
-				else
-				{   //Left swipe
+				else {  
+					//Left swipe
 					GameObject bridge = Instantiate (m_BridgePrefab);
 					bridge.transform.position = tmpBridgeObject1.transform.position;
-					m_Bridges.Add (bridge);
+
+					if (tmpBridgeObject1.activeSelf)
+						m_Bridges.Add (bridge);
+					else
+						Destroy (bridge);
 				}
 			}
 //			else
@@ -176,14 +232,41 @@ public class TouchHandle : MonoBehaviour, IDragHandler, IPointerDownHandler, IPo
 		}
 	}
 
-	public void RemoveAllBridges () {
-		//destroy all vehicles all screen
-		GameObject[] vehicles = GameObject.FindGameObjectsWithTag("BridgeLarge");
+	//method to check overlap bridge
+	private bool isOverlapBridge (GameObject currentBridge) {
+		foreach (GameObject bridge in m_Bridges) {
+			MeshRenderer bridgeRender1 = bridge.GetComponentInChildren<MeshRenderer> () as MeshRenderer;
+			var bound1 = bridgeRender1.bounds;
 
-		foreach (GameObject go in vehicles) {
+			MeshRenderer bridgeRender2 = currentBridge.GetComponentInChildren<MeshRenderer> () as MeshRenderer;
+			var bound2 = bridgeRender2.bounds;
+
+			if (bound1.Intersects (bound2)) {
+				Debug.Log ("Intersection");
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private void changeObjectColor (GameObject currentObject) {
+		MeshRenderer objectRender = currentObject.GetComponentInChildren<MeshRenderer> () as MeshRenderer;
+		objectRender.material.color = Color.grey;
+	}
+
+	public void RemoveAllBridges () {
+		//destroy all bridges all screen
+		GameObject[] bridges = GameObject.FindGameObjectsWithTag("BridgeLarge");
+
+		foreach (GameObject go in bridges) {
 			Destroy (go);
 		}
 
 		m_Bridges.Clear ();
+	}
+
+	public void DestroyBridge(GameObject bridge) {
+		Destroy (bridge);
+		m_Bridges.Remove (bridge);
 	}
 }

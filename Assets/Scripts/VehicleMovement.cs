@@ -15,9 +15,9 @@ public class VehicleMovement : MonoBehaviour {
 	public float m_TurnSpeed = 180;
 	public float originalTurnSpeed;
 	private float decreaseTurnSpeedValue = 0.22f;
-	public AudioSource m_MovementAudio;    
-	public AudioClip m_EngineIdling;       
-	public AudioClip m_EngineDriving;      
+	public AudioSource m_AudioSource;
+	public AudioClip m_ClipTootToot;
+	public AudioClip m_ClipCrash;      
 	public float m_PitchRange = 0.2f;
 
 	private string m_MovementAxisName;     
@@ -87,6 +87,8 @@ public class VehicleMovement : MonoBehaviour {
 		m_Rigidbody.isKinematic = true;
 		m_MovementInputValue = 0;
 		m_Speed = 0;
+		m_TurnInputValue = 0;
+		m_TurnSpeed = 0;
 	}
 
 
@@ -114,19 +116,19 @@ public class VehicleMovement : MonoBehaviour {
 	private void EngineAudio()
 	{
 		// Play the correct audio clip based on whether or not the tank is moving and what audio is currently playing.
-		if (Mathf.Abs (m_TurnInputValue) < 0.1f && Mathf.Abs (m_MovementInputValue) < 0.1f) {
-			if (m_MovementAudio.clip == m_EngineDriving) {
-				m_MovementAudio.clip = m_EngineIdling;
-				m_MovementAudio.pitch = Random.Range (m_OriginalPitch - m_PitchRange, m_OriginalPitch + m_PitchRange);					
-				m_MovementAudio.Play ();
-			}
-		} else {
-			if (m_MovementAudio.clip == m_EngineIdling) {
-				m_MovementAudio.clip = m_EngineDriving;
-				m_MovementAudio.pitch = Random.Range (m_OriginalPitch - m_PitchRange, m_OriginalPitch + m_PitchRange);					
-				m_MovementAudio.Play ();
-			}
-		}
+//		if (Mathf.Abs (m_TurnInputValue) < 0.1f && Mathf.Abs (m_MovementInputValue) < 0.1f) {
+//			if (m_MovementAudio.clip == m_EngineDriving) {
+//				m_MovementAudio.clip = m_EngineIdling;
+//				m_MovementAudio.pitch = Random.Range (m_OriginalPitch - m_PitchRange, m_OriginalPitch + m_PitchRange);					
+//				m_MovementAudio.Play ();
+//			}
+//		} else {
+//			if (m_MovementAudio.clip == m_EngineIdling) {
+//				m_MovementAudio.clip = m_EngineDriving;
+//				m_MovementAudio.pitch = Random.Range (m_OriginalPitch - m_PitchRange, m_OriginalPitch + m_PitchRange);					
+//				m_MovementAudio.Play ();
+//			}
+//		}
 	}
 
 
@@ -164,10 +166,10 @@ public class VehicleMovement : MonoBehaviour {
 					MoveVehicleCenter ();
 
 					//destroy passed bridge
-					if (collisonObject != null) {
-						Destroy (collisonObject.gameObject.transform.parent.gameObject);
-						collisonObject = null;
-					}
+//					if (collisonObject != null) {
+//						Destroy (collisonObject.gameObject.transform.parent.gameObject);
+//						collisonObject = null;
+//					}
 				} 
 			} 
 			else {
@@ -183,10 +185,10 @@ public class VehicleMovement : MonoBehaviour {
 					MoveVehicleCenter ();
 
 					//destroy passed bridge
-					if (collisonObject != null) {
-						Destroy (collisonObject.gameObject.transform.parent.gameObject);
-						collisonObject = null;
-					}
+//					if (collisonObject != null) {
+//						Destroy (collisonObject.gameObject.transform.parent.gameObject);
+//						collisonObject = null;
+//					}
 				}
 			}
 		}
@@ -234,7 +236,10 @@ public class VehicleMovement : MonoBehaviour {
 			Debug.Log ("vehicleState = " + vehicleState + "isBridgePoint = " + isHitCenterBridge);
 
 			if (vehicleState == (int)VehicleState.isOnGround) {
-				
+
+//				Bridge bridge = col.gameObject.GetComponentInParent<Bridge> ();
+//				bridge.bridgeState = (int)BridgeState.BridgeHasVehicle;
+
 				//check turn direction depend on vehicle position and bridge position
 				float deltaX = transform.position.x - col.transform.position.x;
 				float deltaZ = transform.position.z - col.transform.position.z;
@@ -319,41 +324,47 @@ public class VehicleMovement : MonoBehaviour {
 
 				vehicleState = (int)VehicleState.isOutBridge;
 			}
-		} 
-		else if (col.gameObject.tag == "BridgePoint") {
+		} else if (col.gameObject.tag == "BridgePoint") {
 			isHitCenterBridge = true;
-		} 
-		else if (col.gameObject.tag == "Vehicle") {
+		} else if (col.gameObject.tag == "Vehicle") {
 			GameObject gameManager = GameObject.Find ("GameManager");
 			gameManager.GetComponent<GameManager> ().OnGameOver ();
-		}
-		else if (col.gameObject.tag == "DestinationPointDown") {
+
+			//play crash sound
+			m_AudioSource.clip = m_ClipCrash;
+			m_AudioSource.Play ();
+
+			//show smoke effect
+			gameManager.GetComponent<GameManager> ().m_SmokeEffect.transform.position = transform.position;
+			gameManager.GetComponent<GameManager> ().m_SmokeEffect.transform.gameObject.SetActive (true);
+
+		} else if (col.gameObject.tag == "DestinationPointDown") {
 			if (originalRoatationValue != 0) {
 				//ignore vehicle is going up
-			}
-			else {
+			} else {
 				//check vehicle going down
 				GameObject gameManager = GameObject.Find ("GameManager");
 				gameManager.GetComponent<GameManager> ().score++;
-				gameManager.GetComponent<GameManager> ().m_Vehicles.Remove(transform.gameObject);
 
-				Destroy (transform.gameObject);
+				gameManager.GetComponent<GameManager> ().DestroyVehicle (transform.gameObject);
 			}
-		}
-		else if (col.gameObject.tag == "DestinationPointUp") {
+		} else if (col.gameObject.tag == "DestinationPointUp") {
 			if (originalRoatationValue != 0) {
 				//check vehicle is going up
 				GameObject gameManager = GameObject.Find ("GameManager");
 				gameManager.GetComponent<GameManager> ().score++;
-				gameManager.GetComponent<GameManager> ().m_Vehicles.Remove(transform.gameObject);
 
-				Destroy (transform.gameObject);
-			}
-			else {
+				gameManager.GetComponent<GameManager> ().DestroyVehicle (transform.gameObject);
+			} else {
 				//ignore vehicle going down
 
 			}
+		} else if (col.gameObject.tag == "Water") {
+			GameObject gameManager = GameObject.Find ("GameManager");
+			gameManager.GetComponent<GameManager> ().DestroyVehicle (transform.gameObject);
 		}
 	}
+
+
 }
 	

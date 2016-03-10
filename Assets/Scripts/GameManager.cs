@@ -20,6 +20,8 @@ public class GameManager : MonoBehaviour {
 
 	public int m_MaxVehicleOnScreen = 5;
 
+	public GameObject m_SmokeEffect;
+
 	private void Start()
 	{
 //		m_StartWait = new WaitForSeconds(m_StartDelay);
@@ -205,5 +207,10 @@ public class GameManager : MonoBehaviour {
 		TouchHandle controller = panel.transform.GetComponent<TouchHandle> ();
 		controller.RemoveAllBridges ();
 
+	}
+
+	public void DestroyVehicle(GameObject vehicle) 
+	{
+		
 	}
 }
