@@ -29,18 +29,19 @@ public class RailManager : SimpleSingleton<RailManager>
 
 	public Vector3 GetTrainPosition(int railIndex, bool isUp)
 	{
-		Vector3 position = Vector3.zero;
+//		Vector3 position = Vector3.zero;
+		Vector3 position = new Vector3(225.4f, 3.81f, 195f);
 
 		float width = railCount * (railWidth + railSpace) - railSpace;
-		position.x = -width * 0.5f + railWidth * 0.5f + railIndex * (railWidth + railSpace);
+		position.x = position.x -width * 0.5f + railWidth * 0.5f + railIndex * (railWidth + railSpace);
 
 		if (isUp)
 		{
-			position.z = start;
+			position.z += start;
 		}
 		else
 		{
-			position.z = end;
+			position.z += end;
 		}
 
 		return position;
@@ -48,7 +49,7 @@ public class RailManager : SimpleSingleton<RailManager>
 
 	void OnDrawGizmos()
 	{
-		Vector3 center = Vector3.zero;
+		Vector3 center = new Vector3(225.4f, 3.81f, 195f);//Vector3.zero;
 
 		float width = railCount * (railWidth + railSpace) - railSpace;
 		float x = center.x - width * 0.5f;

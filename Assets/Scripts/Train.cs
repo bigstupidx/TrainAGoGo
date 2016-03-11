@@ -5,13 +5,13 @@ public class Train : MonoBehaviour
 	private static readonly Quaternion rotationUp   = Quaternion.identity;
 	private static readonly Quaternion rotationDown = Quaternion.Euler(0, 180, 0);
 
-	private static readonly float speed = 1.0f;
-	private static readonly float min   = -1.0f;
-	private static readonly float max   = 11.0f;
+	public float speed = 2f;
+	private static readonly float min   = 187.4f; //position at bottom
+	private static readonly float max   = 255.13f;
 	private static readonly float turnDuration = 1.0f;
 
 	// The current direction
-	private Direction _direction;
+	public Direction _direction;
 
 	// The current speed
 	private Vector3 _speed;
@@ -73,15 +73,17 @@ public class Train : MonoBehaviour
 			}
 		}
 
-		Vector3 control1 = Vector3.zero;
-		Vector3 control2 = Vector3.zero;
-		Vector3 end = Vector3.zero;
+		Vector3 control1 = new Vector3 (0f, 3.81f, 0f);//Vector3.zero;
+		Vector3 control2 = new Vector3 (0f, 3.81f, 0f);//Vector3.zero;
+		Vector3 end = new Vector3 (0f, 3.81f, 0f);//Vector3.zero;
 
 		control1.x = transform.position.x;
 		control2.x = 2 * _bridge.position.x - transform.position.x;
 		control1.z = control2.z = _bridge.position.z;
 		end.x = control2.x;
 		end.z = 2 * _bridge.position.z - transform.position.z;
+
+		Debug.Log ("control1 = " + control1 + " ctrl2 = " + control2 + " end = " + end);
 
 		_turningHelper.Play(transform, control1, control2, end, false, turnDuration);
 
@@ -99,6 +101,9 @@ public class Train : MonoBehaviour
 				case TriggerType.Bridge:
 				{
 					_bridge = other.transform;
+
+					Turn();
+
 					break;
 				}
 				case TriggerType.Train:
@@ -153,6 +158,7 @@ public class Train : MonoBehaviour
 		}
 		else
 		{
+//			Debug.Log ("z = " + transform.position.z + "speed = " + speed);
 			transform.position += _speed * Time.deltaTime;
 
 			if (transform.position.z < min || transform.position.z > max)
