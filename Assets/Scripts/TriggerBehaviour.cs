@@ -9,4 +9,9 @@ public enum TriggerType
 public class TriggerBehaviour : MonoBehaviour
 {
 	public TriggerType type;
+	public int numberVehicle;
+
+	void Start () {
+		numberVehicle = 0;
+	}
 }

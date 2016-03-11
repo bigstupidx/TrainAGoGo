@@ -31,90 +31,58 @@ public class GameManager : MonoBehaviour {
 	private const string FACEBOOK_APP_ID = "196318637397865";
 	private const string FACEBOOK_URL = "http://www.facebook.com/dialog/feed";
 
-	//test
-	public GameObject trainPrefab;
-	//end test
-
 	private void Start()
 	{
-//		m_StartWait = new WaitForSeconds(m_StartDelay);
-//		m_EndWait = new WaitForSeconds(m_EndDelay);
-
 		m_Vehicles = new List<GameObject>();
-
-//		SpawnVehicle();
-//		SetCameraTargets();
-
-//		StartCoroutine(GameLoop());
 
 		txtScoreText = m_TextObject.GetComponent<Text>();
 
 		m_GameMenuStart.SetActive (true);
 		m_GameMenuOver.SetActive (false);
-
-		//test
-//		for (int i = 0; i < 4; i++) {
-			StartCoroutine(AddTrain (1, 1, true));
-//		}
 	}
 
-	IEnumerator AddTrain(float delay, int railIndex, bool isUp)
+	void AddTrain()
 	{
-		yield return new WaitForSeconds(delay);
+		//check no more 5 vehicles at screen
+		GameObject[] vehicles = GameObject.FindGameObjectsWithTag("Vehicle");
+		if (vehicles.Length > 5)
+			return;
 
-		AddTrain(railIndex, isUp);
-	}
+		int railIndex = Random.Range(0,3);
 
-	void AddTrain(int railIndex, bool isUp)
-	{
+		bool isUp;
+	
+		int random = Random.Range (0, 2);
+
+		if (random == 0)
+			isUp = true;
+		else
+			isUp = false;
+
+		//check score to display vehicles
+		if (score <= 5)
+			random = 0;
+		else if (score > 5 && score <= 10)
+			random = Random.Range (0, 2);
+		else if (score > 10 && score <= 15)
+			random = Random.Range (0, 3);
+		else if (score > 15 && score <= 20)
+			random = Random.Range (0, 4);
+		else
+			random = Random.Range (0, m_VehiclePrefabs.Length);
+
 		// Create train
-		GameObject train = Instantiate<GameObject>(trainPrefab);
-//		train.name = string.Format("Train { 0:00}", Random.Range(0, 100));
+		GameObject train = Instantiate<GameObject>(m_VehiclePrefabs[random]);
 
 		train.transform.position = RailManager.Instance.GetTrainPosition(railIndex, isUp);
 
 		// Set direction
 		Train script = train.GetComponent<Train>();
 		script.Direction = isUp ? Direction.Up : Direction.Down;
+
+		TriggerBehaviour trigger = train.GetComponent<TriggerBehaviour> ();
+		trigger.type = TriggerType.Train;
 	} 
-
-	public void SpawnVehicle()
-	{
-		if (m_Vehicles.Count < m_MaxVehicleOnScreen) {
-			GameObject[] spawnObjects = GameObject.FindGameObjectsWithTag ("SpawnPoint");
-
-			int radSpawn = Random.Range (0, 8); //random start position for vehicle
-
-			//		for (int i = 0; i < spawnObjects.Length; i++) {
-//			VehicleManager vehicleManager = new VehicleManager ();
-
-			int random;
-
-			//check score to display vehicles
-			if (score <= 5)
-				random = 0;
-			else if (score > 5 && score <= 10)
-				random = Random.Range (0, 2);
-			else if (score > 10 && score <= 15)
-				random = Random.Range (0, 3);
-			else if (score > 15 && score <= 20)
-				random = Random.Range (0, 4);
-			else
-				random = Random.Range (0, m_VehiclePrefabs.Length);
-
-//			vehicleManager.m_Instance = Instantiate (m_VehiclePrefabs[random], spawnObjects [radSpawn].transform.position, spawnObjects [radSpawn].transform.rotation) as GameObject;
-
-			GameObject m_Instance = Instantiate (m_VehiclePrefabs[random], spawnObjects [radSpawn].transform.position, spawnObjects [radSpawn].transform.rotation) as GameObject;
-//			VehicleMovement m_Movement = m_Instance.GetComponent<VehicleMovement>();
-
-			m_Instance.tag = "Vehicle";
-
-//			vehicleManager.Setup();
-
-			m_Vehicles.Add (m_Instance);
-			//		}
-		}
-	}
 
 	// Update is called once per frame
 	void Update () {
@@ -144,7 +112,7 @@ public class GameManager : MonoBehaviour {
 
 			//set camera in game
 			GameObject camera = GameObject.Find("FreeLookCameraRig");
-			camera.transform.position = new Vector3(223.3f, 47.7f, 170.7f);
+			camera.transform.position = new Vector3(223.3f, 39.8f, 174.7f);
 			camera.transform.eulerAngles = new Vector3(47.6479f, 363.4417f, 3.3806f);
 				
 			gameObject.GetComponent<AudioSource>().Play();
@@ -152,7 +120,7 @@ public class GameManager : MonoBehaviour {
 			DOVirtual.DelayedCall(3f, () => {
 				m_DaylightController.transform.GetComponent<DayLightController>().OnReset();
 
-				InvokeRepeating("SpawnVehicle", 2, 5);
+				InvokeRepeating("AddTrain", 2, 5);
 
 			} );
 		});
@@ -210,7 +178,7 @@ public class GameManager : MonoBehaviour {
 
 			m_DaylightController.transform.GetComponent<DayLightController>().OnReset();
 
-			InvokeRepeating("SpawnVehicle", 2, 5);
+			InvokeRepeating("AddTrain", 2, 5);
 
 		} );
 	}
@@ -289,13 +257,13 @@ public class GameManager : MonoBehaviour {
 	}
 
 	public void OnGameOver() {
-		CancelInvoke("SpawnVehicle");
+		CancelInvoke("AddTrain");
 
 		//stop all vehicles
 		GameObject[] vehicles = GameObject.FindGameObjectsWithTag("Vehicle");
 
 		foreach (GameObject go in vehicles) {
-			go.GetComponent<VehicleMovement> ().OnDisable ();
+			go.GetComponent<Train> ().OnDisable ();
 		}
 
 		m_GameMenuOver.SetActive (true);

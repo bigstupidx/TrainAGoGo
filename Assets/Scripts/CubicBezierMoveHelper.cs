@@ -55,7 +55,8 @@ public class CubicBezierMoveHelper
 				else
 					_owner.position = _end;
 				
-				_owner.localRotation = Quaternion.Euler(0, 90.0f - GetAngle(_oldPosition, _end), 0);
+				//_owner.localRotation = Quaternion.Euler(0, 90.0f - GetAngle(_oldPosition, _end), 0);
+				_owner.localRotation = Quaternion.Euler(0, 90.0f - GetAngle(_end, _oldPosition), 0);
 			}
 			else
 			{
@@ -76,8 +77,9 @@ public class CubicBezierMoveHelper
 				else
 					_owner.position = position;
 
-				_owner.localRotation = Quaternion.Euler(0, 90.0f - GetAngle(_oldPosition, position), 0);
-				
+//				_owner.localRotation = Quaternion.Euler(0, 90.0f - GetAngle(_oldPosition, position), 0);
+				_owner.localRotation = Quaternion.Euler(0, 90.0f - GetAngle(position, _oldPosition), 0);
+
 				_oldPosition = position;
 
 				return false;

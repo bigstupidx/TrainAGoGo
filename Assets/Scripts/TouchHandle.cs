@@ -84,6 +84,7 @@ public class TouchHandle : MonoBehaviour, IDragHandler, IPointerDownHandler, IPo
 			GameObject gameObject = hitInfo.transform.gameObject;
 
 			if (gameObject.tag == "Road") {
+
 				MeshRenderer roadRender = gameObject.GetComponent<MeshRenderer> () as MeshRenderer;
 				Vector3 roadSize = roadRender.bounds.size;
 
@@ -159,8 +160,9 @@ public class TouchHandle : MonoBehaviour, IDragHandler, IPointerDownHandler, IPo
 				}
 			} 
 			else if (gameObject.tag == "Bridge") {
-				Bridge bridgeScript = gameObject.transform.GetComponent<Bridge> ();
-				if (bridgeScript.numberVehicle <= 0) {
+//				Bridge bridgeScript = gameObject.transform.GetComponent<Bridge> ();
+				TriggerBehaviour trigger = gameObject.transform.GetComponent<TriggerBehaviour>();
+				if (trigger.numberVehicle <= 0) {
 					DestroyBridge (gameObject.transform.parent.gameObject);
 				}
 			}

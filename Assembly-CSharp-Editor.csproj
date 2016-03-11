@@ -45,6 +45,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\BezierCurves\Editor\BezierCurveEditor.cs" />
+     <Compile Include="Assets\BezierCurves\Editor\BezierPointEditor.cs" />
      <Compile Include="Assets\Editor\CrossPlatformInput\CrossPlatformInputInitialize.cs" />
      <Compile Include="Assets\GoogleMobileAds\Editor\CocoaPodHelper.cs" />
      <Compile Include="Assets\GoogleMobileAds\Editor\PostProcessor.cs" />
@@ -58,6 +60,7 @@
      <None Include="Assets\Demigiant\DOTween\readme.txt" />
      <None Include="Assets\Fonts\Documentation\JazzCreateBubble_VersionHistory_1.1.txt" />
      <None Include="Assets\Standard Assets\Environment\Water\Water4\Shaders\FXWater4Simple.shader" />
+     <None Include="Assets\BezierCurves\readme.txt" />
      <None Include="Assets\Standard Assets\Environment\Water (Basic)\Shaders\FXWaterBasic.shader" />
      <None Include="Assets\Standard Assets\Fonts\OpenSans\License!.txt" />
      <None Include="Assets\Standard Assets\CrossPlatformInput\CrossPlatformInputGuidelines.txt" />
