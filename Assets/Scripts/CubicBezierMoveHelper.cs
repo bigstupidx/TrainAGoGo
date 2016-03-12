@@ -29,6 +29,8 @@ public class CubicBezierMoveHelper
 	// The old position
 	private Vector3 _oldPosition;
 
+	GameObject gameManager;
+
 	public void Play(Transform owner, Vector3 control1, Vector3 control2, Vector3 end, bool isLocal = false, float duration = 1.0f)
 	{
 		_owner = owner;
@@ -40,10 +42,18 @@ public class CubicBezierMoveHelper
 		_duration = duration;
 		_time = 0;
 		_oldPosition = _start;
+
+		gameManager = GameObject.Find ("GameManager");
 	}
 
 	public bool Update(float deltaTime)
 	{
+		
+		bool isGameOver = gameManager.GetComponent<GameManager> ().isGameOver;
+
+		if (isGameOver)
+			return false;
+
 		if (_time < _duration)
 		{
 			_time += deltaTime;

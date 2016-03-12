@@ -106,11 +106,11 @@ public class Train : MonoBehaviour
 			{
 				case TriggerType.Bridge:
 				{
+					trigger.numberVehicle++;
+
 					_bridge = other.transform;
 
 					Turn();
-
-					trigger.numberVehicle++;
 
 					break;
 				}
@@ -134,12 +134,15 @@ public class Train : MonoBehaviour
 				{
 					trigger.numberVehicle--;
 
-					if (trigger.numberVehicle == 0) {
+					GameObject gameManager = GameObject.Find ("GameManager");
+					bool isGameOver = gameManager.GetComponent<GameManager> ().isGameOver;
+
+					if (trigger.numberVehicle == 0 && !isGameOver) {
 						TouchHandle touchHandle = GameObject.Find ("Panel").GetComponent<TouchHandle> ();
 						touchHandle.DestroyBridge (other.transform.parent.gameObject);
+						_bridge = null;
 					}
-
-					_bridge = null;
+						
 					break;
 				}
 				case TriggerType.Train:
@@ -151,6 +154,8 @@ public class Train : MonoBehaviour
 	}
 
 	void OnCollisionEnter(Collision col) {
+		TriggerBehaviour trigger = col.transform.GetComponent<TriggerBehaviour>();
+
 		if (col.gameObject.tag == "Vehicle") {
 			GameObject gameManager = GameObject.Find ("GameManager");
 			gameManager.GetComponent<GameManager> ().OnGameOver ();
@@ -162,7 +167,7 @@ public class Train : MonoBehaviour
 			//show smoke effect
 			gameManager.GetComponent<GameManager> ().m_SmokeEffect.transform.position = transform.position;
 			gameManager.GetComponent<GameManager> ().m_SmokeEffect.transform.gameObject.SetActive (true);
-		}
+		} 
 	}
 
 	public void OnDisable ()

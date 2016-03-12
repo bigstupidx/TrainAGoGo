@@ -6,6 +6,8 @@ using DG.Tweening;
 
 public class GameManager : MonoBehaviour {
 
+	public bool isGameOver = false; 
+
 	public GameObject[] m_VehiclePrefabs;
 	public List<GameObject> m_Vehicles;
 
@@ -100,6 +102,8 @@ public class GameManager : MonoBehaviour {
 		}
 
 		DOVirtual.DelayedCall(time,() => {
+			isGameOver = false;
+
 			m_GameMenuStart.SetActive(false);
 			m_VehicleModels.SetActive(false);
 
@@ -166,6 +170,7 @@ public class GameManager : MonoBehaviour {
 		}
 
 		DOVirtual.DelayedCall(time,() => {
+			isGameOver = false;
 
 			m_GameMenuOver.SetActive (false);
 
@@ -257,6 +262,8 @@ public class GameManager : MonoBehaviour {
 	}
 
 	public void OnGameOver() {
+		isGameOver = true;
+
 		CancelInvoke("AddTrain");
 
 		//stop all vehicles

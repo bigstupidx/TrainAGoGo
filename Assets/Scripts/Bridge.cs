@@ -23,11 +23,13 @@ public class Bridge : MonoBehaviour {
 	}
 
 	void OnCollisionEnter(Collision col) {
+		Debug.Log ("OnCollisionEnter ");
 		if (col.gameObject.tag == "Vehicle")
 			numberVehicle++;
 	}
 
 	void OnCollisionExit(Collision col) {
+		Debug.Log ("OnCollisionExit ");
 		if (col.gameObject.tag == "Vehicle") {
 			numberVehicle--;
 			if (numberVehicle <= 0) {
