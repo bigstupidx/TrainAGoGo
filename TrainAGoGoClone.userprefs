@@ -1,13 +1,15 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/Train.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/Animation/BlinkEffect.cs">
     <Files>
-      <File FileName="Assets/Scripts/GameManager.cs" Line="266" Column="25" />
-      <File FileName="Assets/Scripts/Train.cs" Line="171" Column="10" />
+      <File FileName="Assets/Scripts/Ads/GoogleMobileAdsDemoScript.cs" Line="1" Column="1" />
+      <File FileName="Assets/Scripts/GameManager.cs" Line="265" Column="21" />
+      <File FileName="Assets/Scripts/Train.cs" Line="175" Column="1" />
       <File FileName="Assets/Scripts/RailManager.cs" Line="8" Column="20" />
-      <File FileName="Assets/Scripts/CubicBezierMoveHelper.cs" Line="81" Column="75" />
+      <File FileName="Assets/Scripts/CubicBezierMoveHelper.cs" Line="50" Column="3" />
       <File FileName="Assets/Scripts/TriggerBehaviour.cs" Line="15" Column="21" />
-      <File FileName="Assets/Scripts/VehicleMovement.cs" Line="92" Column="3" />
+      <File FileName="Assets/Scripts/Bridge.cs" Line="32" Column="30" />
+      <File FileName="Assets/Scripts/Animation/BlinkEffect.cs" Line="22" Column="28" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

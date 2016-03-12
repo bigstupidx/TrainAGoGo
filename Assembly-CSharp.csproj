@@ -45,6 +45,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\ArrowScript.cs" />
      <Compile Include="Assets\BezierCurves\Scripts\BezierCurve.cs" />
      <Compile Include="Assets\BezierCurves\Scripts\BezierPoint.cs" />
      <Compile Include="Assets\Demigiant\DOTween\Examples\Basics.cs" />
@@ -107,11 +108,14 @@
      <Compile Include="Assets\Scripts\VehicleManager.cs" />
      <Compile Include="Assets\Scripts\VehicleMovement.cs" />
      <Compile Include="Assets\Scripts\VirtualJoystick.cs" />
+     <Compile Include="Assets\UIAddons\Scripts\SceneExample.cs" />
      <None Include="Assets\Demigiant\DOTween\readme.txt" />
+     <None Include="Assets\UIAddons\Shaders\UIAddonsGrayScaleFont.shader" />
      <None Include="Assets\Fonts\Documentation\JazzCreateBubble_VersionHistory_1.1.txt" />
      <None Include="Assets\Standard Assets\Environment\Water\Water4\Shaders\FXWater4Simple.shader" />
      <None Include="Assets\BezierCurves\readme.txt" />
      <None Include="Assets\Standard Assets\Environment\Water (Basic)\Shaders\FXWaterBasic.shader" />
+     <None Include="Assets\UIAddons\Shaders\UIAddonsGrayscale.shader" />
      <None Include="Assets\Standard Assets\Fonts\OpenSans\License!.txt" />
      <None Include="Assets\Standard Assets\CrossPlatformInput\CrossPlatformInputGuidelines.txt" />
      <None Include="Assets\Standard Assets\Environment\Water\Water\Shaders\FXWaterPro.shader" />
@@ -129,6 +133,9 @@
  </Reference>
  <Reference Include="DOTween">
  <HintPath>/Users/Shared/Unity/TrainAGoGoClone/Assets/Demigiant/DOTween/DOTween.dll</HintPath>
+ </Reference>
+ <Reference Include="UIAddons">
+ <HintPath>/Users/Shared/Unity/TrainAGoGoClone/Assets/UIAddons/Plugins/UIAddons/UIAddons.dll</HintPath>
  </Reference>
   </ItemGroup>
   <ItemGroup>

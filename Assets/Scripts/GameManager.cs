@@ -26,6 +26,8 @@ public class GameManager : MonoBehaviour {
 
 	public GameObject m_VehicleModels;
 
+	public GameObject m_ArrowPrefab;
+
 	private string iOSURL = "itms://itunes.apple.com/us/app/apple-store/id1088439628?mt=8";
 	private string ANDROIDURL = "https://play.google.com/store/apps/details?id=com.nhuanquang.crossabridge";
 
@@ -61,6 +63,28 @@ public class GameManager : MonoBehaviour {
 		else
 			isUp = false;
 
+		//add arow before add train
+		GameObject arrow = Instantiate<GameObject>(m_ArrowPrefab);
+		Vector3 arrowPosition = RailManager.Instance.GetTrainPosition(railIndex, isUp);
+
+		if (isUp) {
+			arrowPosition.z += 5.0f;
+			arrow.transform.rotation = Quaternion.Euler(270, 0, 0);
+		} 
+		else {
+			arrowPosition.z -= 10.0f;
+		}
+
+		arrow.transform.position = arrowPosition;
+
+		//add train
+		StartCoroutine(AddTrain (railIndex, isUp));
+	} 
+
+	IEnumerator AddTrain(int railIndex, bool isUp) {
+		yield return new WaitForSeconds (2);
+
+		int random;
 		//check score to display vehicles
 		if (score <= 5)
 			random = 0;
@@ -72,7 +96,7 @@ public class GameManager : MonoBehaviour {
 			random = Random.Range (0, 4);
 		else
 			random = Random.Range (0, m_VehiclePrefabs.Length);
-
+		
 		// Create train
 		GameObject train = Instantiate<GameObject>(m_VehiclePrefabs[random]);
 
@@ -84,7 +108,7 @@ public class GameManager : MonoBehaviour {
 
 		TriggerBehaviour trigger = train.GetComponent<TriggerBehaviour> ();
 		trigger.type = TriggerType.Train;
-	} 
+	}
 
 	// Update is called once per frame
 	void Update () {
@@ -116,7 +140,7 @@ public class GameManager : MonoBehaviour {
 
 			//set camera in game
 			GameObject camera = GameObject.Find("FreeLookCameraRig");
-			camera.transform.position = new Vector3(223.3f, 39.8f, 174.7f);
+			camera.transform.position = new Vector3(223.3f, 39.8f, 172.75f);
 			camera.transform.eulerAngles = new Vector3(47.6479f, 363.4417f, 3.3806f);
 				
 			gameObject.GetComponent<AudioSource>().Play();
