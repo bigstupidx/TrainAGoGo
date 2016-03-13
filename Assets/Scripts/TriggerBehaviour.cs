@@ -9,9 +9,14 @@ public enum TriggerType
 public class TriggerBehaviour : MonoBehaviour
 {
 	public TriggerType type;
-	public int numberVehicle;
 
-	void Start () {
-		numberVehicle = 0;
+	public bool isCollision = false;
+	public bool isInit = true;
+
+	void Update() {
+		if (!isInit && !isCollision) {
+			TouchHandle touchHandle = GameObject.Find ("Panel").GetComponent<TouchHandle> ();
+			touchHandle.DestroyBridge (transform.parent.gameObject);
+		}
 	}
 }

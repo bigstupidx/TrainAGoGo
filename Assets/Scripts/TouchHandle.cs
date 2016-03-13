@@ -160,11 +160,12 @@ public class TouchHandle : MonoBehaviour, IDragHandler, IPointerDownHandler, IPo
 				}
 			} 
 			else if (gameObject.tag == "Bridge") {
-//				Bridge bridgeScript = gameObject.transform.GetComponent<Bridge> ();
 				TriggerBehaviour trigger = gameObject.transform.GetComponent<TriggerBehaviour>();
-				if (trigger.numberVehicle <= 0) {
+//				if (trigger.numberVehicle <= 0) {
+//					DestroyBridge (gameObject.transform.parent.gameObject);
+//				}
+				if (!trigger.isCollision)
 					DestroyBridge (gameObject.transform.parent.gameObject);
-				}
 			}
 		}
 	}

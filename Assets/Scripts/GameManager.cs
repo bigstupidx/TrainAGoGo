@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using DG.Tweening;
+using Facebook.Unity;
 
 public class GameManager : MonoBehaviour {
 
@@ -29,11 +30,47 @@ public class GameManager : MonoBehaviour {
 	public GameObject m_ArrowPrefab;
 
 	private string iOSURL = "itms://itunes.apple.com/us/app/apple-store/id1088439628?mt=8";
+	private string iOSShareURL = "https://itunes.apple.com/us/app/apple-store/id1088439628?mt=8";
 	private string ANDROIDURL = "https://play.google.com/store/apps/details?id=com.nhuanquang.crossabridge";
 
 	private string facebookUrl = "https://facebook.com/nhuanquang.dn";
 	private const string FACEBOOK_APP_ID = "196318637397865";
 	private const string FACEBOOK_URL = "http://www.facebook.com/dialog/feed";
+
+	// Awake function from Unity's MonoBehavior
+	void Awake ()
+	{
+		if (!FB.IsInitialized) {
+			// Initialize the Facebook SDK
+			FB.Init(InitCallback, OnHideUnity);
+		} else {
+			// Already initialized, signal an app activation App Event
+			FB.ActivateApp();
+		}
+	}
+
+	private void InitCallback ()
+	{
+		if (FB.IsInitialized) {
+			// Signal an app activation App Event
+			FB.ActivateApp();
+			// Continue with Facebook SDK
+			// ...
+		} else {
+			Debug.Log("Failed to Initialize the Facebook SDK");
+		}
+	}
+
+	private void OnHideUnity (bool isGameShown)
+	{
+		if (!isGameShown) {
+			// Pause the game - we will need to hide
+			Time.timeScale = 0;
+		} else {
+			// Resume the game - we're getting focus again
+			Time.timeScale = 1;
+		}
+	}
 
 	private void Start()
 	{
@@ -43,6 +80,7 @@ public class GameManager : MonoBehaviour {
 
 		m_GameMenuStart.SetActive (true);
 		m_GameMenuOver.SetActive (false);
+
 	}
 
 	void AddTrain()
@@ -134,13 +172,16 @@ public class GameManager : MonoBehaviour {
 			//hide smokeEffect
 			m_SmokeEffect.SetActive(false);
 
+			//show score text
+			m_TextObject.SetActive(true);
+
 			//hide banner
 			GameObject adsManager = GameObject.Find("AdsManager");
 			adsManager.GetComponent<GoogleMobileAdsDemoScript>().bannerView.Hide();
 
 			//set camera in game
 			GameObject camera = GameObject.Find("FreeLookCameraRig");
-			camera.transform.position = new Vector3(223.3f, 39.8f, 172.75f);
+			camera.transform.position = new Vector3(223.3f, 42.7f, 170.1f);
 			camera.transform.eulerAngles = new Vector3(47.6479f, 363.4417f, 3.3806f);
 				
 			gameObject.GetComponent<AudioSource>().Play();
@@ -170,7 +211,7 @@ public class GameManager : MonoBehaviour {
 
 	public void OnMoreGames() {
 		GameObject adsManager = GameObject.Find("AdsManager");
-		adsManager.GetComponent<GoogleMobileAdsDemoScript>().RequestInterstitial();
+//		adsManager.GetComponent<GoogleMobileAdsDemoScript>().RequestInterstitial();
 		adsManager.GetComponent<GoogleMobileAdsDemoScript>().interstitial.Show();
 	}
 
@@ -213,23 +254,53 @@ public class GameManager : MonoBehaviour {
 	}
 
 	public void OnShare() {
-		string link;
 
-		#if UNITY_IOS
-		link = iOSURL;
-		#endif
+		var perms = new List<string>(){"public_profile", "email", "user_friends"};
+		FB.LogInWithReadPermissions(perms, AuthCallback);
 
-		#if UNITY_ANDROID
-		link = ANDROIDURL;
-		#endif
-			
-		string name = "Cross a Bridge";
-		string caption = "My Score: " + score;
-		string description = "I bet you beat my score";
-		string pictureUrl = "https://c2.staticflickr.com/2/1669/25163086582_317ef36586_m.jpg";
-		string redirectUri = "http://www.facebook.com/";
+//		ShareToFacebook (link, name, caption, description, pictureUrl, redirectUri);
+	}
 
-		ShareToFacebook (link, name, caption, description, pictureUrl, redirectUri);
+	private void AuthCallback (ILoginResult result) {
+		if (FB.IsLoggedIn) {
+			// AccessToken class will have session details
+			var aToken = Facebook.Unity.AccessToken.CurrentAccessToken;
+			// Print current access token's User ID
+			Debug.Log(aToken.UserId);
+			// Print current access token's granted permissions
+			foreach (string perm in aToken.Permissions) {
+				Debug.Log(perm);
+			}
+
+			string link;
+
+			#if UNITY_IOS
+			link = iOSShareURL;
+			#endif
+
+			#if UNITY_ANDROID
+			link = ANDROIDURL;
+			#endif
+
+//			string name = "Cross a Bridge";
+//			string caption = "My Score: " + score;
+//			string description = "I bet you beat my score";
+			link = WWW.EscapeURL(link);
+			string pictureUrl = WWW.EscapeURL("https://c2.staticflickr.com/2/1669/25163086582_317ef36586_m.jpg");
+//			string redirectUri = "http://www.facebook.com/";
+
+			FB.FeedShare(
+				toId: "",
+				link: new System.Uri(link),
+				linkName: "Cross a Bridge",
+				linkCaption: "My Score: " + score,
+				linkDescription: "I bet you beat my score",
+				picture: new System.Uri(pictureUrl),
+				callback: null
+			);
+		} else {
+			Debug.Log("User cancelled login");
+		}
 	}
 
 	void ShareToFacebook (string linkParameter, string nameParameter, string captionParameter, string descriptionParameter, string pictureParameter, string redirectParameter)
@@ -270,6 +341,9 @@ public class GameManager : MonoBehaviour {
 			//hide smokeEffect
 			m_SmokeEffect.SetActive(false);
 
+			//hide score text
+			m_TextObject.SetActive(false);
+
 			//show banner
 			GameObject adsManager = GameObject.Find("AdsManager");
 			adsManager.GetComponent<GoogleMobileAdsDemoScript>().bannerView.Show();
@@ -306,6 +380,9 @@ public class GameManager : MonoBehaviour {
 
 		//show interstitial
 		adsManager.GetComponent<GoogleMobileAdsDemoScript>().interstitial.Show();
+
+		//request for next show
+		adsManager.GetComponent<GoogleMobileAdsDemoScript>().RequestInterstitial();
 	}
 
 	public void DestroyAllVehicles () {

@@ -30,6 +30,8 @@ public class Train : MonoBehaviour
 
 	public Rigidbody m_Rigidbody;
 
+	private Collider _collider;
+
 	public Direction Direction
 	{
 		get
@@ -106,7 +108,9 @@ public class Train : MonoBehaviour
 			{
 				case TriggerType.Bridge:
 				{
-					trigger.numberVehicle++;
+					_collider = other;
+
+					trigger.isInit = false;
 
 					_bridge = other.transform;
 
@@ -116,6 +120,21 @@ public class Train : MonoBehaviour
 				}
 				case TriggerType.Train:
 				{
+					break;
+				}
+			}
+		}
+	}
+
+	void OnTriggerStay(Collider other) {
+		TriggerBehaviour trigger = other.GetComponent<TriggerBehaviour>();
+
+		if (trigger != null) {
+			switch (trigger.type) 
+			{
+				case TriggerType.Bridge:
+				{
+					trigger.isCollision = true;
 					break;
 				}
 			}
@@ -132,16 +151,9 @@ public class Train : MonoBehaviour
 			{
 				case TriggerType.Bridge:
 				{
-					trigger.numberVehicle--;
+					trigger.isCollision = false;
 
-					GameObject gameManager = GameObject.Find ("GameManager");
-					bool isGameOver = gameManager.GetComponent<GameManager> ().isGameOver;
-
-					if (trigger.numberVehicle == 0 && !isGameOver) {
-						TouchHandle touchHandle = GameObject.Find ("Panel").GetComponent<TouchHandle> ();
-						touchHandle.DestroyBridge (other.transform.parent.gameObject);
-						_bridge = null;
-					}
+					_bridge = null;
 						
 					break;
 				}
@@ -154,8 +166,6 @@ public class Train : MonoBehaviour
 	}
 
 	void OnCollisionEnter(Collision col) {
-		TriggerBehaviour trigger = col.transform.GetComponent<TriggerBehaviour>();
-
 		if (col.gameObject.tag == "Vehicle") {
 			GameObject gameManager = GameObject.Find ("GameManager");
 			gameManager.GetComponent<GameManager> ().OnGameOver ();
@@ -200,9 +210,13 @@ public class Train : MonoBehaviour
 		{
 			transform.position += _speed * Time.deltaTime;
 
-			if ((transform.position.z < min && _direction == Direction.Down) || (transform.position.z > max-10 && _direction == Direction.Up))
+			if ((transform.position.z < min && _direction == Direction.Down) || (transform.position.z > max-5 && _direction == Direction.Up))
 			{
-				//GameManager.Instance.OnTrainFinished(gameObject);
+				if (_collider != null) {
+					TriggerBehaviour trigger = _collider.GetComponent<TriggerBehaviour> ();
+					trigger.isCollision = false;
+				}
+					
 				GameObject gameManager = GameObject.Find ("GameManager");
 				gameManager.GetComponent<GameManager> ().score++;
 
